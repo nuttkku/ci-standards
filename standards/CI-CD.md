@@ -1,4 +1,4 @@
-# มาตรฐาน CI/CD — nuttkku (v1.1, 2026-11-03)
+# มาตรฐาน CI/CD — nuttkku (v1.2, 2026-11-03)
 
 ไฟล์ต้นฉบับอยู่ที่ `nuttkku/ci-standards/standards/CI-CD.md` (repo public) — แต่ละ repo มีสำเนาย่อ + หัวข้อ "เฉพาะ repo นี้" ใน `CI-CD.md`
 ถ้าจะเปลี่ยนมาตรฐาน แก้ที่ต้นฉบับก่อน แล้วค่อยอัปเดตสำเนา
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0 (Node 24) — บัญชีส่วนตัวใช้ฟรี; scan เฉพาะ commit ใน PR
-        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}, GITLEAKS_VERSION: 8.30.1 }   # ตัวที่ action แถมมา (8.24) ไม่อ่าน [[allowlists]]
 ```
 ### 2) `.github/workflows/security-weekly.yml` — งานหนัก main + รายสัปดาห์
 ```yaml
@@ -71,7 +71,7 @@ on:
   schedule: [{ cron: '0 20 * * 0' }]       # จันทร์ 03:00 เวลาไทย
   workflow_dispatch:
 concurrency:
-  group: security-${{ github.ref }}
+  group: security-${{ github.ref }}-${{ github.event_name }}   # แยกตาม event: push เข้า main ต้องไม่ยกเลิกรอบ weekly/สั่งเอง
   cancel-in-progress: true
 permissions:
   contents: read
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
-        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}, GITLEAKS_VERSION: 8.30.1 }   # ตัวที่ action แถมมา (8.24) ไม่อ่าน [[allowlists]]
 ```
 ZAP (เฉพาะแอปที่ deploy): เพิ่ม job `zaproxy/action-baseline` ใน `security-weekly.yml` โดยให้รันเฉพาะ `schedule`/`workflow_dispatch`
 
@@ -130,6 +130,7 @@ updates:
 - secret ที่ต้องใช้: `SNYK_TOKEN` (repo secret) — Dependabot PR จะไม่ได้รับ secret นี้ จึงข้าม snyk ใน PR ของ Dependabot
 
 ## ประวัติการแก้ไข
+- **v1.2 (2026-11-03)** — ตั้ง `GITLEAKS_VERSION` (gitleaks ที่ action แถมมา 8.24 ไม่รองรับ `[[allowlists]]` ใน `.gitleaks.toml` → รายการที่ยกเว้นไว้กลับมาแดงทั้งหมดในรอบ full history) · `concurrency` ของ `security-weekly.yml` แยกตาม `github.event_name` (เดิม push เข้า main ยกเลิกรอบที่สั่งเอง/weekly ที่กำลังรัน) · Trivy: ถ้า finding อยู่ในเครื่องมือที่ใส่ไว้ใน image เองและยังไม่มี release ที่แก้ ให้ข้ามด้วย `skip-files` พร้อมเหตุผล + เงื่อนไขเอาออก ใน workflow
 - **v1.1 (2026-11-03)** — job `secrets` ใน `ci.yml` ต้องมี `permissions: pull-requests: read` (เดิมได้แค่ `contents: read` จาก workflow → gitleaks-action ได้ 403 `Resource not accessible by integration` บน PR ของ repo private) · gitleaks-action → v3.0.0 (runtime Node 24, input/behavior เหมือน v2) ปักด้วย SHA — พบตอนย้าย `odt-infra-ticket`
 
 ## เช็กลิสต์ย้ายเข้ามาตรฐาน (สำหรับผู้ดูแล / AI ประจำ repo)

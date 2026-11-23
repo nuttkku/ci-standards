@@ -1,0 +1,19 @@
+# nuttkku/ci-standards v2 — PR ความปลอดภัยเท่านั้น รวมเป็น PR เดียวต่อ ecosystem
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories: ["/"]                      # ใส่ทุกโฟลเดอร์ที่มี lockfile
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Asia/Bangkok }
+    open-pull-requests-limit: 0             # ปิด PR อัปเวอร์ชันทั่วไป — PR ความปลอดภัยยังมา
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Asia/Bangkok }
+    open-pull-requests-limit: 0
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ["*"]

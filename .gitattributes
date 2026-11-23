@@ -1,0 +1,4 @@
+* text=auto
+# รันด้วย bash / ใน Linux container — ต้องเป็น LF เสมอ (กัน core.autocrlf บน Windows)
+*.sh text eol=lf
+.security-scan.conf text eol=lf

@@ -1,0 +1,36 @@
+# nuttkku/ci-standards v2 — งานเร็ว ทุก PR + main (สแกนหนักรันในเครื่อง: scripts/security-scan.sh)
+name: ci
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'docs/**', '.github/dependabot.yml']
+  pull_request:
+    paths-ignore: ['**/*.md', 'docs/**']
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }     # ให้ตรงกับ Node ใน Dockerfile ของ production
+      - run: npm ci
+      - run: npm run lint --if-present && npm run typecheck --if-present && npm test --if-present
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read                          # gitleaks-action อ่านรายการ commit ของ PR — ขาดแล้ว 403 บน repo private
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0 — scan เฉพาะ commit ใหม่
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.30.1                 # ตัวที่ action แถมมา (8.24) ไม่อ่าน [[allowlists]]

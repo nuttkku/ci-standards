@@ -21,7 +21,10 @@ TRIVY_IMAGE=aquasec/trivy:0.76.2
 ZAP_IMAGE=zaproxy/zap-stable:2.17.0
 SNYK_IMAGE=snyk/snyk:linux@sha256:b58d519288c5f0848deeb93074fe6492f1ee0a47575e14182a8385c046704426  # CLI 1.1309.0
 
-# --- ค่าเริ่มต้น (override ใน .security-scan.conf) ---------------------------------------------
+# --- ค่าเริ่มต้น (override ใน .security-scan.conf หรือ env ตอนรัน — env ชนะ) ----------------------
+ENV_VARS=(SAST SAST_FAIL ZAP_TARGET ZAP_NETWORK ZAP_RULES ZAP_FAIL TRIVY_IGNOREFILE)
+ENV_OVERRIDES=()
+for v in "${ENV_VARS[@]}"; do [ -n "${!v+x}" ] && ENV_OVERRIDES+=("$v=${!v}"); done
 # IMAGES: หนึ่งบรรทัดต่อ image — "ชื่อ|build context|target (เว้นได้)|trivy skip-dirs|trivy skip-files|ignorefile"
 IMAGES=()
 TRIVY_CONFIG_PATHS=(.)          # โฟลเดอร์ที่ตรวจ Dockerfile / compose (trivy config)
@@ -38,6 +41,7 @@ ZAP_FAIL=1                      # 0 = รายงานอย่างเดี
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "ต้องรันในโฟลเดอร์ของ git repo" >&2; exit 2; }
 cd "$ROOT" || exit 2
 [ -f .security-scan.conf ] && . <(tr -d '\r' < .security-scan.conf)  # ทนไฟล์ที่ Windows แปลงเป็น CRLF
+for kv in "${ENV_OVERRIDES[@]}"; do declare "$kv"; done
 
 REPORTS="$ROOT/security-reports"
 mkdir -p "$REPORTS"

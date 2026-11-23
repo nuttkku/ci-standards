@@ -149,7 +149,7 @@ docker compose up -d && bash scripts/security-scan.sh dast   # ZAP baseline ก�
 - **v2.0 (2026-11-23)** — ย้ายสแกนหนักทั้งหมด (Trivy, Snyk Code/Semgrep, ZAP, gitleaks ทั้ง history) จาก `security-weekly.yml` ไปรันในเครื่องด้วย Docker ผ่าน `scripts/security-scan.sh` (เลิกใช้ `security-weekly.yml`) ·
   SAST เลือก Semgrep หรือ Snyk Code ต่อ repo · `actions/checkout` / `setup-node` → v7 (Node 24) · Dependabot เพิ่ม ecosystem `github-actions`, ไม่ใช้ `docker` ·
   เพิ่มโฟลเดอร์ `templates/` · เป้านาที Actions ลดเหลือ ≤ ~1,000/เดือน ·
-  ที่มา: ระบบส่วนใหญ่อยู่ในเครือข่ายภายใน มข. ที่ runner ของ GitHub เข้าไม่ถึง (ZAP), ไม่ต้องแจก `SNYK_TOKEN` ให้ทุก repo, และ repo ที่ไม่ได้ตั้ง token ถูกข้าม Snyk เงียบๆ มาตลอด
+  ที่มา: ระบบส่วนใหญ่อยู่ในเครือข่ายภายในที่ runner ของ GitHub เข้าไม่ถึง (ZAP), ไม่ต้องแจก `SNYK_TOKEN` ให้ทุก repo, และ job ที่ต้องใช้ token ไม่ควรข้ามได้เมื่อลืมตั้ง
 - **v1.2 (2026-11-03)** — ตั้ง `GITLEAKS_VERSION` (gitleaks ที่ action แถมมา 8.24 ไม่รองรับ `[[allowlists]]`) · `concurrency` ของ `security-weekly.yml` แยกตาม `github.event_name` · Trivy `skip-files` สำหรับเครื่องมือที่ใส่ไว้ใน image เอง พร้อมเหตุผล + เงื่อนไขเอาออก
 - **v1.1 (2026-11-03)** — job `secrets` ต้องมี `permissions: pull-requests: read` (403 บน PR ของ repo private) · gitleaks-action → v3.0.0 ปักด้วย SHA
 - **v1.0 (2026-11-01)** — มาตรฐานแรก: `ci.yml` + `security-weekly.yml` + Dependabot แบบรวมกลุ่ม
